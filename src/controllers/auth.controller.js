@@ -2,13 +2,6 @@ import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 
-
-// /**
-//  * @desc Register a new user
-//  * @route POST /api/auth/register
-//  * @access Public
-//  * @body { username, email, password }
-//  */
 export async function register(req, res) {
 
 
@@ -43,7 +36,7 @@ export async function register(req, res) {
                 <p>Please verify your email address by clicking the link below:</p>
                 <p>Please verify your email address by clicking the link below:</p>
                 <p>Please verify your email address by clicking the link below:</p>
-                <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                <a href="http://localhost:3000/api/auth/verify?token=${emailVerificationToken}">Verify Email</a>
                 <p>If you did not create an account, please ignore this email.</p>
                 <p>Best regards,<br>The Perplexity Team</p>
         `
@@ -63,10 +56,34 @@ export async function register(req, res) {
 
 }
 
-// export async function register(req, res) {
-//     console.log("API HIT");
+export async function verifyEmail(req, res) {
 
-//     return res.json({
-//         message: "working"
-//     });
-// }
+    const { token } = req.query
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const user = await userModel.findOne({
+        email: decoded.email
+    })
+
+    if (!user) {
+        return res.status(400).json({
+            message: "invalide token",
+            success: false,
+            err: "user not found "
+        })
+    }
+
+    user.verified = true
+
+    await user.save()
+
+    const html = (`
+        <h1>email verified successfully</h1>
+        <p>your email has been verified. you can go to your login account .</p>
+        <a href="http://localhost:3000/login"> go to loign </a>
+        `)
+
+    res.send(html)
+
+}
