@@ -2,57 +2,71 @@ import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 
-export async function registerUser(req, res) {
 
-    console.log("STEP 1");
+// /**
+//  * @desc Register a new user
+//  * @route POST /api/auth/register
+//  * @access Public
+//  * @body { username, email, password }
+//  */
+export async function register(req, res) {
 
-    const { username, email, password } = req.body
 
-    const isUserAlredyExits = await userModel.findOne({
-        $or: [
-            { username }, { email }
-        ]
+
+    const { username, email, password } = req.body;
+
+    const isUserAlreadyExists = await userModel.findOne({
+        $or: [{ email }, { username }]
     })
 
-    if (isUserAlredyExits) {
-        return res.status(409).json({
-            message: "user already exits",
+    if (isUserAlreadyExists) {
+        return res.status(400).json({
+            message: "User with this email or username already exists",
             success: false,
-            err: "user already exits"
+            err: "User already exists"
         })
     }
 
-    const user = await userModel.create({
-        username, email, password
+    const user = await userModel.create({ username, email, password })
+
+
+    const emailVerificationToken = jwt.sign({
+        email: user.email,
+    }, process.env.JWT_SECRET)
+
+    await sendEmail({
+        to: email,
+        subject: "Welcome to Perplexity!",
+        html: `
+                <p>Hi ${username},</p>
+                <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <p>Please verify your email address by clicking the link below:</p>
+                <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                <p>If you did not create an account, please ignore this email.</p>
+                <p>Best regards,<br>The Perplexity Team</p>
+        `
     })
 
-
-    console.log("STEP 2");
-
-    try {
-        await sendEmail({
-            to: email,
-            subject: "welcome to the persplexity",
-            html: "hi thank you for registering to the perplexity",
-        });
-    } catch (err) {
-        console.log("Mail failed but user created");
-    }
-
-    console.log("STEP 3");
     res.status(201).json({
-        messsage: "user registered successfully",
+        message: "User registered successfully",
         success: true,
         user: {
             id: user._id,
-            name: user.username,
+            username: user.username,
             email: user.email
         }
-    })
-
+    });
 
 
 
 }
 
+// export async function register(req, res) {
+//     console.log("API HIT");
 
+//     return res.json({
+//         message: "working"
+//     });
+// }
