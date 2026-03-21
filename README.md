@@ -1,4 +1,4 @@
-# 🤖 Perplexity AI Clone (Mistral + LangChain + Multi-LLM)
+# Perplexity AI(Mistral + LangChain + Multi-LLM)
 
 A powerful **GenAI-based search assistant** inspired by Perplexity AI.  
 This project leverages **Mistral AI**, **LangChain**, and multiple LLMs to provide **intelligent, context-aware answers** to user queries.
@@ -82,8 +82,8 @@ OTHER_LLM_API_KEY=your_other_llm_key
 
 ### 1. Clone the repository
 
-git clone https://github.com/your-username/perplexity-ai-clone.git
-cd perplexity-ai-clone
+git clone (https://github.com/afdhruval/perplexity/tree/main)
+cd perplexity-ai
 
 
 ### 2. Install dependencies
