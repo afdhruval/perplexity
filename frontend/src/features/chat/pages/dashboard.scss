@@ -109,6 +109,66 @@ body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hi
     }
 }
 
+/* Quota Modal Styles (Added back) */
+.quota-modal {
+    max-width: 440px !important;
+    padding: 3rem;
+    background: var(--search-modal-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+
+    .quota-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+
+        .main-icon {
+            font-size: 64px;
+            color: #a5f3fc;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 15px rgba(165, 243, 252, 0.3));
+        }
+
+        h2 { font-size: 24px; font-weight: 700; color: var(--text-white); margin: 0; }
+        p { font-size: 15px; color: var(--text-main); line-height: 1.6; margin: 0; opacity: 0.7; }
+
+        .quota-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 1rem;
+
+            button {
+                width: 100%;
+                height: 52px;
+                border-radius: 14px;
+                font-weight: 700;
+                font-size: 15px;
+                cursor: pointer;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+                &.login-primary {
+                    background: var(--text-white);
+                    border: none;
+                    color: var(--bg-main);
+                    &:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); }
+                }
+
+                &.cancel-secondary {
+                    background: transparent;
+                    border: 1px solid var(--accent-border);
+                    color: var(--text-gray);
+                    &:hover { border-color: var(--text-white); color: var(--text-white); background: rgba(255,255,255,0.02); }
+                }
+            }
+        }
+    }
+}
+
 .model-selector-popover-v2 {
     position: absolute; bottom: 3.5rem; left: 0; width: 330px; background: var(--search-modal-bg); border: 1px solid var(--accent-border); border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.2); z-index: 2000;
     .pop-header-v2 { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--accent-border); input { background: none; border: none; color: var(--text-white); font-size: 14px; outline: none; width: 100%; } }
@@ -150,90 +210,3 @@ body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hi
 .floating-sidebar-toggle { position: absolute; top: 1.55rem; left: 1.55rem; z-index: 10; color: var(--text-gray); font-size: 21px; cursor: pointer; &:hover { color: var(--text-white); } }
 .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg-main); overflow: hidden; }
 .chat-window-viewport { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
-
-/* ==============================
-   Quota Modal Styles
-============================== */
-.global-search-overlay {
-    .quota-modal {
-        max-width: 440px !important;
-        padding: 3rem;
-        background: var(--search-modal-bg);
-        border: 1px solid var(--accent-border);
-        border-radius: 24px;
-        text-align: center;
-        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-
-        .quota-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-
-            .main-icon {
-                font-size: 64px;
-                color: #a5f3fc;
-                margin-bottom: 0.5rem;
-                filter: drop-shadow(0 0 15px rgba(165, 243, 252, 0.3));
-            }
-
-            h2 {
-                font-size: 24px;
-                font-weight: 700;
-                color: var(--text-white);
-                margin: 0;
-                letter-spacing: -0.01em;
-            }
-
-            p {
-                font-size: 15px;
-                color: var(--text-main);
-                line-height: 1.6;
-                margin: 0;
-                opacity: 0.7;
-            }
-
-            .quota-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                width: 100%;
-                margin-top: 1rem;
-
-                button {
-                    width: 100%;
-                    height: 52px;
-                    border-radius: 14px;
-                    font-weight: 700;
-                    font-size: 15px;
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-                    &.login-primary {
-                        background: var(--text-white);
-                        border: none;
-                        color: var(--bg-main);
-                        
-                        &:hover {
-                            opacity: 0.9;
-                            transform: translateY(-2px);
-                            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-                        }
-                    }
-
-                    &.cancel-secondary {
-                        background: transparent;
-                        border: 1px solid var(--accent-border);
-                        color: var(--text-gray);
-
-                        &:hover {
-                            border-color: var(--text-white);
-                            color: var(--text-white);
-                            background: rgba(255,255,255,0.02);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

@@ -71,7 +71,7 @@ const Dashboard = () => {
     const [chats, setChats] = useState([]);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [currentModel, setCurrentModel] = useState({ id: 'gpt-4o-mini', name: 'GPT-4o mini', provider: 'OpenAI' });
+    const [currentModel, setCurrentModel] = useState({ id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' });
     const [latestAiMsgId, setLatestAiMsgId] = useState(null);
     
     const messagesEndRef = useRef(null);
@@ -140,7 +140,6 @@ const Dashboard = () => {
         const msgContent = forcedContent || chatInput.trim();
         if (!msgContent) return;
         
-        // Quota check for guests
         if (!user && freeChatsLeft <= 0) {
             setIsQuotaModalOpen(true);
             return;
@@ -162,7 +161,7 @@ const Dashboard = () => {
             if (!currentChatId && !data.isGuest) {
                 setCurrentChatId(data.chat._id); fetchChats();
             } else if (data.isGuest) {
-                setCurrentChatId(data.chat._id); // Temporarily set for the session
+                setCurrentChatId(data.chat._id);
             }
 
             const aiId = 'ai-' + Date.now();
@@ -172,19 +171,6 @@ const Dashboard = () => {
             toast.error("Error sending message"); 
             console.error(err);
         } finally { setIsLoading(false); }
-    };
-
-    const handleCopy = (text) => { navigator.clipboard.writeText(text); toast.success("Copied to clipboard!"); };
-
-    const handleShare = (text) => {
-        if (navigator.share) {
-            navigator.share({ title: 'Coreos Chat', text: text, url: window.location.href })
-                .then(() => toast.success("Shared successfully!"))
-                .catch(() => toast.error("Share cancelled"));
-        } else {
-            handleCopy(text);
-            toast.success("Link copied to clipboard for sharing!");
-        }
     };
 
     const groupChatsByDate = (chatList) => {
@@ -207,12 +193,11 @@ const Dashboard = () => {
 
     const models = [
         { category: 'OpenAI', list: [
-            { id: 'gpt-4o-mini', name: 'GPT-4o mini', provider: 'OpenAI' },
-            { id: 'gpt-4o', name: 'GPT-4o', provider: 'OpenAI' }
+            { id: 'gpt-4o-mini', name: 'GPT-4o mini', provider: 'OpenAI' }
         ]},
-        { category: 'Google Generative AI', list: [
-            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google' },
-            { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' }
+        { category: 'Google AI', list: [
+            { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' },
+            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google' }
         ]},
         { category: 'Mistral AI', list: [
             { id: 'mistral-small', name: 'Mistral Small', provider: 'Mistral' },
@@ -315,7 +300,6 @@ const Dashboard = () => {
                                                 <div className="pop-header-v3"><p className="username">{user.username}</p><p className="email">{user.email}</p></div>
                                                 <div className="pop-menu-v3">
                                                     <button className="pop-btn" onClick={(e) => { e.stopPropagation(); setIsThemeSubmenuOpen(true); }}><i className="ri-sun-line"></i><span>Theme</span></button>
-                                                    <button className="pop-btn" onClick={() => navigate('/settings')}><i className="ri-settings-4-line"></i><span>Settings</span></button>
                                                     <button className="pop-btn logout" onClick={handleSignOut}><i className="ri-logout-box-r-line"></i><span>Log out</span></button>
                                                 </div>
                                             </>
@@ -355,7 +339,6 @@ const Dashboard = () => {
                                 <button className="chip"><i className="ri-compass-line"></i> For you</button>
                                 <button className="chip"><i className="ri-book-read-line"></i> Study guide</button>
                                 <button className="chip"><i className="ri-briefcase-line"></i> Business</button>
-                                <button className="chip"><i className="ri-heart-pulse-line"></i> Health</button>
                             </div>
                             <div className="hero-input-zone">
                                 <UnifiedChatInput placeholder="Ask anything..." val={chatInput} onChange={setChatInput} onSend={handleSendMessage} onToggleModels={() => setIsModelSelectorOpen(!isModelSelectorOpen)} isModelSelectorOpen={isModelSelectorOpen} ModelSelector={ModelSelector} isLoading={isLoading} />
@@ -381,9 +364,7 @@ const Dashboard = () => {
                                             </div>
                                             <div className="ai-toolbar-left">
                                                 <button className="tool-btn" onClick={() => handleSendMessage(null, "Regenerate")}><i className="ri-restart-line"></i></button>
-                                                <button className="tool-btn" onClick={() => handleShare(m.content)}><i className="ri-share-line"></i></button>
-                                                <button className="tool-btn" onClick={() => handleCopy(m.content)}><i className="ri-file-copy-line"></i></button>
-                                                <button className="tool-btn"><i className="ri-download-line"></i></button>
+                                                <button className="tool-btn" onClick={() => navigator.clipboard.writeText(m.content)}><i className="ri-file-copy-line"></i></button>
                                             </div>
                                             <div className="msg-divider"></div>
                                         </div>

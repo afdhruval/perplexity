@@ -2,123 +2,95 @@ import "dotenv/config";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { ChatOpenAI } from "@langchain/openai";
-import {
-    HumanMessage,
-    SystemMessage,
-    AIMessage,
-    tool,
-    createAgent 
-} from "langchain";
-import * as z from "zod";
-import { tavily } from "@tavily/core";
-
-const tvly = tavily({
-    apiKey: process.env.TAVILY_API_KEY
-});
-
-const searchInternetFn = async ({ query }) => {
-    try {
-        const result = await tvly.search(query, {
-            maxResults: 3,
-            searchDepth: "basic"
-        });
-        const cleanResults = (result.results || []).map(r => ({
-            title: r.title,
-            content: r.content,
-            url: r.url
-        }));
-        return { content: JSON.stringify(cleanResults) };
-    } catch (err) {
-        return { content: "No internet results found." };
-    }
-};
-
-const searchInternetTool = tool(searchInternetFn, {
-    name: "search_internet",
-    description: "Use this tool ONLY for latest or real-time info. IMPORTANT: Call only once, then give final answer.",
-    schema: z.object({ query: z.string() })
-});
+import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
 
 const getModelInstance = (modelId) => {
-    if (modelId.includes('gemini')) {
-        return new ChatGoogleGenerativeAI({
-            model: modelId === 'gemini-1.5-flash' ? 'gemini-1.5-flash-latest' : 'gemini-1.5-pro-latest',
-            apiKey: process.env.GOOGLE_API_KEY,
-        });
-    } else if (modelId.includes('mistral')) {
-        return new ChatMistralAI({
-            model: modelId === 'mistral-small' ? 'mistral-small-latest' : 'mistral-large-latest',
-            apiKey: process.env.MISTRAL_API_KEY
-        });
-    } else if (modelId.includes('gpt')) {
-        return new ChatOpenAI({
-            modelName: modelId,
-            openAIApiKey: process.env.OPENAI_API_KEY
-        });
+    try {
+        if (modelId.includes('gemini')) {
+            // Using "model" and "apiKey" which is standard for recent @langchain/google-genai
+            return new ChatGoogleGenerativeAI({
+                model: modelId.includes('flash') ? "gemini-1.5-flash" : "gemini-1.5-pro",
+                apiKey: process.env.GOOGLE_API_KEY,
+                maxOutputTokens: 2048,
+            });
+        } else if (modelId.includes('mistral')) {
+            return new ChatMistralAI({
+                model: modelId === 'mistral-small' ? 'mistral-small-latest' : 'mistral-large-latest',
+                apiKey: process.env.MISTRAL_API_KEY,
+            });
+        } else if (modelId.includes('gpt')) {
+            return new ChatOpenAI({
+                model: modelId,
+                apiKey: process.env.OPENAI_API_KEY
+            });
+        }
+    } catch (e) {
+        console.error(`Error initializing model ${modelId}:`, e.message);
     }
-    // Default
+    
+    // Default safe fallback
     return new ChatGoogleGenerativeAI({
-        model: "gemini-1.5-flash-latest",
+        model: "gemini-1.5-flash",
         apiKey: process.env.GOOGLE_API_KEY,
     });
 };
 
-const createInternetAgent = (model) =>
-    createAgent({
-        model,
-        tools: [searchInternetTool],
-        systemPrompt: `You are a smart AI assistant. Rules: Use tool only if necessary. Never call tool more than once. Generate FINAL answer. Keep answer concise and professional.`
-    });
-
 export async function generateMessage(messages, modelId = 'gemini-1.5-flash') {
     try {
+        console.log(`Starting generation with model: ${modelId}`);
         const model = getModelInstance(modelId);
-        const agent = createInternetAgent(model);
+        
+        // System prompt for premium styling
+        const systemPrompt = new SystemMessage("You are COREOS AI... a premium discovery assistant. Provide clear, well-spaced, and friendly answers with emojis. Format with clean markdown.");
+        
+        const chatMessages = [
+            systemPrompt,
+            ...messages.map(msg => {
+                const content = msg.content || "";
+                if (msg.role === "user") return new HumanMessage(content);
+                if (msg.role === "ai" || msg.role === "assistant") return new AIMessage(content);
+                return new HumanMessage(content);
+            })
+        ];
 
-        const response = await agent.invoke(
-            {
-                messages: messages.map(msg =>
-                    msg.role === "user"
-                        ? new HumanMessage(msg.content)
-                        : new AIMessage(msg.content)
-                )
-            },
-            { recursionLimit: 20 }
-        );
+        const response = await model.invoke(chatMessages);
+        
+        let content = response.content;
+        if (Array.isArray(content)) {
+            content = content.map(c => c.text || JSON.stringify(c)).join("");
+        }
 
-        return extractText(response);
+        return content || "No content generated.";
+
     } catch (error) {
-        console.log(`⚠ Primary model (${modelId}) failed → falling back to gemini-flash`);
+        console.error(`⚠ Primary AI (${modelId}) failed:`, error.message);
+        
+        // Final Fallback attempts
         try {
-            const fallbackModel = getModelInstance('gemini-1.5-flash');
-            const agent = createInternetAgent(fallbackModel);
-            const response = await agent.invoke({
-                messages: messages.map(msg => msg.role === "user" ? new HumanMessage(msg.content) : new AIMessage(msg.content))
-            }, { recursionLimit: 20 });
-            return extractText(response);
+            console.log("Applying final fallback (Gemini Flash)...");
+            const fallbackModel = new ChatGoogleGenerativeAI({
+                model: "gemini-1.5-flash",
+                apiKey: process.env.GOOGLE_API_KEY,
+            });
+            const chatMessages = messages.map(m => new HumanMessage(m.content || ""));
+            const fallbackResponse = await fallbackModel.invoke(chatMessages);
+            return fallbackResponse.content;
         } catch (err) {
-            console.error("🔥 All models failed:", err);
-            return "I apologize, but I encountered an error processing your request. Please try again shortly.";
+            console.error("🔥 Universal AI failure:", err.message);
+            return "This model is out of chat, use our latest models like Mistral and Gemini ✨";
         }
     }
 }
 
-function extractText(response) {
-    try {
-        const last = response.messages.at(-1);
-        if (typeof last.content === "string") return last.content;
-        if (Array.isArray(last.content)) return last.content.map(item => item.text || "").join("");
-        return JSON.stringify(last.content);
-    } catch {
-        return "Error parsing response.";
-    }
-}
-
 export async function generateChattitle(message) {
-    const model = getModelInstance('mistral-small');
-    const response = await model.invoke([
-        new SystemMessage("Generate a short 2-4 word title. Return only the title text."),
-        new HumanMessage(message)
-    ]);
-    return typeof response.content === "string" ? response.content : JSON.stringify(response.content);
+    try {
+        const model = getModelInstance('mistral-small');
+        const response = await model.invoke([
+            new SystemMessage("Summarize the following message in 2-4 words for a chat title. Return ONLY the title."),
+            new HumanMessage(message || "New Conversation")
+        ]);
+        return response.content.toString().replace(/["']/g, '');
+    } catch (err) {
+        return "Untitled Exploration";
+    }
 }
