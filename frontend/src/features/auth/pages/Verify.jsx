@@ -1,81 +1,103 @@
-import React, { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { verifyEmail } from '../service/auth.api'
-import './auth.scss'
+import React, { useEffect, useState, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { verifyEmail } from '../service/auth.api';
+import toast from 'react-hot-toast';
+import './auth.scss';
 
 const Verify = () => {
-    const [searchParams] = useSearchParams()
-    const [status, setStatus] = useState('verifying') 
-    const [message, setMessage] = useState('Verifying your email...')
-    const navigate = useNavigate()
+    const [searchParams] = useSearchParams();
+    const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
+    const [message, setMessage] = useState('Confirming your identity...');
+    const navigate = useNavigate();
+    const hasCalledVerify = useRef(false);
 
     useEffect(() => {
-        const token = searchParams.get('token')
-        if (token) {
-            handleVerify(token)
-        } else {
-            setStatus('error')
-            setMessage('Invalid verification link')
+        const token = searchParams.get('token');
+        if (token && !hasCalledVerify.current) {
+            hasCalledVerify.current = true;
+            handleVerify(token);
+        } else if (!token) {
+            setStatus('error');
+            setMessage('No verification token found. Please check your email link.');
         }
-    }, [searchParams])
+    }, [searchParams]);
 
     const handleVerify = async (token) => {
         try {
-            await verifyEmail(token)
-            setStatus('success')
+            await verifyEmail(token);
+            setStatus('success');
+            setMessage('Your account has been successfully verified! You can now access your discovery workspace.');
+            
+            // Auto-redirect after a short delay
+            setTimeout(() => {
+                navigate('/login');
+            }, 3000);
         } catch (err) {
-            setStatus('error')
-            setMessage(err.response?.data?.message || 'Verification failed. The link might be expired.')
+            setStatus('error');
+            setMessage(err.response?.data?.message || 'Verification failed. This link may have expired or is invalid.');
         }
-    }
+    };
 
     return (
-        <div className="auth-container">
-            <div className="auth-card">
-                
-                <div className="auth-header">
-                    <div className="icon-box"></div>
-                    <h2>Verify your email</h2>
-                    <p>
-                        Welcome to <span style={{ color: '#fff', fontWeight: 'bold' }}>Perplexity</span>. Please click below to verify your account.
-                    </p>
+        <div className="auth-modern-layout">
+            <div className="auth-card-modern" style={{ textAlign: 'center', padding: '2rem 1rem' }}>
+                <div className="auth-header-minimal" style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                    <span className="welcome-label" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                         <div className="premium-logo-box" style={{ width: '2rem', height: '2rem', background: '#fff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                             <div className="inner-circle" style={{ width: '1rem', height: '1rem', background: '#000', borderRadius: '50%' }}></div>
+                         </div>
+                    </span>
+                    <h1 className="main-title">
+                        {status === 'verifying' ? 'Verifying Identity' : status === 'success' ? 'Identity Confirmed' : 'Verification Issue'}
+                    </h1>
                 </div>
 
-                {status === 'verifying' && (
-                     <div style={{ padding: '2rem' }}>
-                        <svg className="animate-spin h-8 w-8 text-[#22d3ee]" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </div>
-                )}
+                <div className="verify-body" style={{ margin: '2rem 0' }}>
+                    {status === 'verifying' && (
+                        <div className="modern-success-box" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)', color: '#888' }}>
+                            <i className="ri-loader-4-line spin" style={{ fontSize: '24px' }}></i>
+                            <span style={{ fontSize: '15px' }}>{message}</span>
+                        </div>
+                    )}
 
-                {status === 'error' && (
-                    <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(153, 27, 27, 0.1)', border: '1px solid rgba(153, 27, 27, 0.3)', color: '#f87171', borderRadius: '12px', fontSize: '14px', textAlign: 'center', width: '100%' }}>
-                        {message}
-                    </div>
-                )}
+                    {status === 'success' && (
+                        <div className="modern-success-box" style={{ background: 'rgba(34,197,94,0.05)', borderColor: 'rgba(34,197,94,0.1)', color: '#22c55e', flexDirection: 'column', padding: '2rem 1.5rem', textAlign: 'center' }}>
+                            <i className="ri-checkbox-circle-fill" style={{ fontSize: '48px', marginBottom: '0.5rem' }}></i>
+                            <p style={{ margin: 0, fontSize: '15px', fontWeight: '500', color: '#fff', lineHeight: 1.6 }}>{message}</p>
+                            <p style={{ margin: '1rem 0 0 0', fontSize: '12px', color: '#666' }}>Redirecting to sign in...</p>
+                        </div>
+                    )}
 
-                <button
-                    onClick={() => status === 'success' ? navigate('/login') : status === 'error' ? navigate('/register') : null}
-                    disabled={status === 'verifying'}
-                    className="submit-btn"
-                    style={{ backgroundColor: status === 'error' ? '#333' : '#22d3ee', color: status === 'error' ? '#fff' : '#000' }}
-                >
-                    {status === 'verifying' ? 'Verifying...' : status === 'error' ? 'Try again' : 'Verify Email Address'}
-                </button>
-                
+                    {status === 'error' && (
+                        <div className="modern-success-box" style={{ background: 'rgba(244,63,94,0.05)', borderColor: 'rgba(244,63,94,0.1)', color: '#f43f5e', flexDirection: 'column', padding: '2rem 1.5rem', textAlign: 'center' }}>
+                            <i className="ri-error-warning-fill" style={{ fontSize: '48px', marginBottom: '0.5rem' }}></i>
+                            <p style={{ margin: 0, fontSize: '14px', color: '#fca5a5', lineHeight: 1.6 }}>{message}</p>
+                        </div>
+                    )}
+                </div>
+
                 {status === 'success' && (
-                    <p style={{ marginTop: '1rem', color: '#22c55e', fontSize: '14px', fontWeight: '500' }}>Verified successfully! Redirecting to login...</p>
+                    <button onClick={() => navigate('/login')} className="modern-submit-btn" style={{ marginTop: '0' }}>
+                        Sign in now →
+                    </button>
+                )}
+                
+                {status === 'error' && (
+                    <button onClick={() => navigate('/register')} className="modern-submit-btn" style={{ marginTop: '0' }}>
+                        Create new account
+                    </button>
                 )}
 
-                <div className="auth-footer">
-                    <p style={{ color: '#444', fontSize: '11px', marginBottom: '1rem' }}>If you didn't create an account, you can safely ignore this email.</p>
-                    <p style={{ color: '#22d3ee', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }}>The Perplexity Team</p>
+                <div className="auth-divider-modern" style={{ marginTop: '3rem' }}>
+                    <span style={{ letterSpacing: '0.05em' }}>COROS SECURE IDENTITY</span>
                 </div>
             </div>
+            <style>{`
+                .spin { animation: spin 1s linear infinite; }
+                @keyframes spin { 100% { transform: rotate(360deg); } }
+            `}</style>
         </div>
-    )
-}
+    );
+};
 
-export default Verify
+export default Verify;

@@ -34,19 +34,26 @@ const TypewriterText = ({ content, speed = 10, onComplete }) => {
 };
 
 const UnifiedChatInput = ({ placeholder, val, onChange, onSend, onToggleModels, isModelSelectorOpen, ModelSelector, isLoading }) => (
-    <div className="discovery-input-card-v2">
-        <textarea placeholder={placeholder} value={val} onChange={e => onChange(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend(e)} />
-        <div className="input-actions-row">
-            <div className="left" style={{ position: 'relative' }}>
-                <button className="action-ic" onClick={onToggleModels}><i className="ri-add-line"></i></button>
-                {isModelSelectorOpen && <ModelSelector />}
+    <div className="discovery-input-wrapper">
+        <div className="discovery-input-card-v2">
+            <textarea placeholder={placeholder} value={val} onChange={e => onChange(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && onSend(e)} />
+            <div className="input-actions-row">
+                <div className="left" style={{ position: 'relative' }}>
+                    <button className="action-ic" onClick={onToggleModels}><i className="ri-add-line"></i></button>
+                    {isModelSelectorOpen && <ModelSelector />}
+                </div>
+                <div className="right">
+                    <button className="send-circle" onClick={onSend} disabled={!val.trim() || isLoading}>
+                        <i className={isLoading ? "ri-loader-4-line spin" : "ri-arrow-up-line"}></i>
+                    </button>
+                </div>
             </div>
-            <div className="right">
-                <button className="action-ic"><i className="ri-mic-line"></i></button>
-                <button className="send-circle" onClick={onSend} disabled={!val.trim() || isLoading}>
-                    <i className={isLoading ? "ri-loader-4-line spin" : "ri-arrow-up-line"}></i>
-                </button>
-            </div>
+        </div>
+        <div className="input-utility-chips">
+            <button className="util-chip"><i className="ri-global-line"></i> Web & Research</button>
+            <button className="util-chip"><i className="ri-file-text-line"></i> Documents & Files</button>
+            <button className="util-chip"><i className="ri-video-line"></i> Video & Media</button>
+            <button className="util-chip"><i className="ri-tools-line"></i> Utilities</button>
         </div>
     </div>
 );
@@ -71,7 +78,8 @@ const Dashboard = () => {
     const [chats, setChats] = useState([]);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [currentModel, setCurrentModel] = useState({ id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' });
+    const [currentModel, setCurrentModel] = useState({ id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', provider: 'Google' });
+    const [modelSearchTerm, setModelSearchTerm] = useState('');
     const [latestAiMsgId, setLatestAiMsgId] = useState(null);
     
     const messagesEndRef = useRef(null);
@@ -173,6 +181,13 @@ const Dashboard = () => {
         } finally { setIsLoading(false); }
     };
 
+    const handleEditPrompt = (content) => {
+        setChatInput(content);
+        if (viewportRef.current) {
+            viewportRef.current.scrollTo({ top: viewportRef.current.scrollHeight, behavior: 'smooth' });
+        }
+    };
+
     const groupChatsByDate = (chatList) => {
         const groups = { Today: [], Yesterday: [], 'Last 7 Days': [], 'Older': [] };
         const now = new Date();
@@ -196,8 +211,8 @@ const Dashboard = () => {
             { id: 'gpt-4o-mini', name: 'GPT-4o mini', provider: 'OpenAI' }
         ]},
         { category: 'Google AI', list: [
-            { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' },
-            { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google' }
+            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', provider: 'Google' },
+            { id: 'gemini-flash-latest', name: 'Gemini Flash Latest', provider: 'Google' }
         ]},
         { category: 'Mistral AI', list: [
             { id: 'mistral-small', name: 'Mistral Small', provider: 'Mistral' },
@@ -205,25 +220,56 @@ const Dashboard = () => {
         ]}
     ];
 
-    const ModelSelector = () => (
-        <div className="model-selector-popover-v2 animate-popover">
-            <div className="pop-header-v2"><i className="ri-search-line"></i><input type="text" placeholder="Search models..." /></div>
-            <div className="pop-body-v2">
-                {models.map(cat => (
-                    <div key={cat.category} className="cat-section">
-                        <p className="cat-title">{cat.category}</p>
-                        {cat.list.map(m => (
-                            <div key={m.id} className={`m-row ${currentModel.id === m.id ? 'selected' : ''}`} onClick={(e) => { e.stopPropagation(); setCurrentModel(m); setIsModelSelectorOpen(false); }}>
-                                <div className="m-icon-box"><i className={m.provider === 'OpenAI' ? "ri-openai-fill" : (m.provider === 'Mistral' ? "ri-sparkling-2-line" : "ri-google-fill")}></i></div>
-                                <span className="m-name">{m.name}</span>
-                                {currentModel.id === m.id && <i className="ri-check-line select-check"></i>}
-                            </div>
-                        ))}
-                    </div>
-                ))}
+    const filteredModels = models.map(cat => ({
+        ...cat,
+        list: cat.list.filter(m => m.name.toLowerCase().includes(modelSearchTerm.toLowerCase()))
+    })).filter(cat => cat.list.length > 0);
+
+    const ModelSelector = () => {
+        const selectedRef = useRef(null);
+        useEffect(() => {
+            if (selectedRef.current) {
+                selectedRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }, []);
+        return (
+            <div className="model-selector-popover-v2 animate-popover">
+                <div className="pop-header-v2">
+                    <i className="ri-search-line"></i>
+                    <input
+                        autoFocus
+                        type="text"
+                        placeholder="Search models..."
+                        value={modelSearchTerm}
+                        onChange={e => { e.stopPropagation(); setModelSearchTerm(e.target.value); }}
+                        onClick={e => e.stopPropagation()}
+                    />
+                </div>
+                <div className="pop-body-v2">
+                    {filteredModels.map(cat => (
+                        <div key={cat.category} className="cat-section">
+                            <p className="cat-title">{cat.category}</p>
+                            {cat.list.map(m => (
+                                <div
+                                    key={m.id}
+                                    ref={currentModel.id === m.id ? selectedRef : null}
+                                    className={`m-row ${currentModel.id === m.id ? 'selected' : ''}`}
+                                    onClick={(e) => { e.stopPropagation(); setCurrentModel(m); setIsModelSelectorOpen(false); setModelSearchTerm(''); }}
+                                >
+                                    <div className="m-icon-box"><i className={m.provider === 'OpenAI' ? "ri-openai-fill" : (m.provider === 'Mistral' ? "ri-sparkling-2-line" : "ri-google-fill")}></i></div>
+                                    <span className="m-name">{m.name}</span>
+                                    {currentModel.id === m.id && <i className="ri-check-line select-check"></i>}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                    {filteredModels.length === 0 && (
+                        <p className="no-models-msg">No models found</p>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <div className={`dashboard-layout ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
@@ -260,7 +306,7 @@ const Dashboard = () => {
                         <div className="quota-content">
                             <i className="ri-error-warning-line main-icon"></i>
                             <h2>Free Quota Exhausted</h2>
-                            <p>You have used your 3 free guest messages. <br/> Please sign in to continue chatting with COREOS AI.</p>
+                            <p>You have used your 3 free guest messages. <br/> Please sign in to continue chatting with COROS.</p>
                             <div className="quota-actions">
                                 <button className="login-primary" onClick={() => navigate('/login')}>Sign In</button>
                                 <button className="cancel-secondary" onClick={() => setIsQuotaModalOpen(false)}>Maybe Later</button>
@@ -274,8 +320,8 @@ const Dashboard = () => {
                 <div className="sidebar-content">
                     <div className="top-nav-area">
                         <div className="logo-row-premium">
-                            <div className="logo-group"><div className="premium-logo-box"><div className="inner-circle"></div></div><span className="logo-name">COREOS</span></div>
-                            <button className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(false)}><i className="ri-layout-left-line"></i></button>
+                            <div className="logo-group"><div className="premium-logo-box"><div className="inner-circle"></div></div><span className="logo-name">COROS</span></div>
+                            <button className="sidebar-toggle-btn" onClick={() => { setIsSidebarOpen(false); setIsMobileSidebarOpen(false); }}><i className="ri-layout-left-line"></i></button>
                         </div>
                         <div className="action-buttons-stack">
                             <button className="nav-item highlighted main-new-chat" onClick={handleNewChat}><i className="ri-add-line"></i><span>New Chat</span></button>
@@ -329,12 +375,13 @@ const Dashboard = () => {
             </aside>
 
             <main className="main-content">
-                {!isSidebarOpen && <button className="floating-sidebar-toggle" onClick={() => setIsSidebarOpen(true)}><i className="ri-layout-left-line"></i></button>}
+                <button className="mobile-hamburger-btn" onClick={() => setIsMobileSidebarOpen(true)}><i className="ri-menu-line"></i></button>
+                {!isSidebarOpen && <button className="floating-sidebar-toggle desktop-only" onClick={() => setIsSidebarOpen(true)}><i className="ri-layout-left-line"></i></button>}
 
                 <div className="chat-window-viewport" ref={viewportRef}>
                     {!currentChatId && messages.length === 0 ? (
                         <div className="discovery-screen-v2">
-                            <h1 className="hero-title">COREOS AI</h1>
+                            <h1 className="hero-title">COROS</h1>
                             <div className="discovery-chips-row-v2">
                                 <button className="chip"><i className="ri-compass-line"></i> For you</button>
                                 <button className="chip"><i className="ri-book-read-line"></i> Study guide</button>
@@ -354,7 +401,13 @@ const Dashboard = () => {
                             {messages.map((m) => (
                                 <div key={m._id} className={`doc-msg-row ${m.role}`}>
                                     {m.role === 'user' ? (
-                                        <div className="user-text-box">{m.content}</div>
+                                        <div className="user-msg-container">
+                                            <div className="user-text-box">{m.content}</div>
+                                            <div className="user-msg-actions">
+                                                <button onClick={() => handleEditPrompt(m.content)} title="Edit prompt"><i className="ri-pencil-line"></i></button>
+                                                <button onClick={() => navigator.clipboard.writeText(m.content)} title="Copy prompt"><i className="ri-file-copy-line"></i></button>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div className="ai-response-body">
                                             <div className="content-wrapper">

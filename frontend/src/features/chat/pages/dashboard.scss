@@ -178,19 +178,38 @@ body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hi
 .discovery-screen-v2 { padding-top: 15vh; text-align: center; .hero-title { font-size: 3rem; font-weight: 600; color: var(--text-white); margin-bottom: 2.5rem; } }
 .discovery-chips-row-v2 { display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin-bottom: 2.2rem; .chip { padding: 0.44rem 1rem; border-radius: 20px; border: 1px solid var(--accent-border); background: var(--bg-accent); color: var(--text-white); font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 0.55rem; cursor: pointer; &:hover { border-color: var(--text-gray); } } }
 
-.discovery-input-card-v2 {
-    background: var(--input-bg); border: 1px solid var(--accent-border); border-radius: 20px; padding: 1.2rem 1.6rem; text-align: left; max-width: 800px; margin: 0 auto;
-    textarea { width: 100%; background: none; border: none; color: var(--text-white); font-size: 1.25rem; min-height: 5.5rem; resize: none; outline: none; }
-    .input-actions-row {
-        display: flex; align-items: center; justify-content: space-between; .action-ic { background: none; border: none; color: var(--text-gray); font-size: 1.4rem; cursor: pointer; &:hover { color: var(--text-white); } }
-        .right { display: flex; align-items: center; gap: 1.2rem; .send-circle { width: 34px; height: 34px; background: rgba(128,128,128,0.1); color: var(--text-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 18px; &:not(:disabled) { background: var(--text-white); color: var(--bg-main); cursor: pointer; } } }
+.discovery-input-wrapper {
+    max-width: 800px; margin: 0 auto;
+    .discovery-input-card-v2 {
+        background: var(--input-bg); border: 1px solid var(--accent-border); border-radius: 20px; padding: 1.2rem 1.6rem; text-align: left;
+        textarea { width: 100%; background: none; border: none; color: var(--text-white); font-size: 1.25rem; min-height: 5.5rem; resize: none; outline: none; }
+        .input-actions-row {
+            display: flex; align-items: center; justify-content: space-between; .action-ic { background: none; border: none; color: var(--text-gray); font-size: 1.4rem; cursor: pointer; &:hover { color: var(--text-white); } }
+            .right { display: flex; align-items: center; gap: 1.2rem; .send-circle { width: 34px; height: 34px; background: rgba(128,128,128,0.1); color: var(--text-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; font-size: 18px; &:not(:disabled) { background: var(--text-white); color: var(--bg-main); cursor: pointer; } } }
+        }
+    }
+    .input-utility-chips {
+        display: flex; gap: 0.6rem; margin-top: 0.8rem; overflow-x: auto; padding-bottom: 0.5rem;
+        .util-chip {
+            background: transparent; border: 1px solid var(--accent-border); color: var(--text-gray); border-radius: 12px; padding: 0.4rem 0.8rem; font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; white-space: nowrap;
+            &:hover { border-color: var(--text-white); color: var(--text-white); }
+        }
     }
 }
 
 .hero-suggestions-list { max-width: 800px; margin: 2rem auto 0; text-align: left; .suggestion-item { padding: 1rem 0; font-size: 15px; color: var(--text-white); opacity: 0.8; border-bottom: 1px solid var(--accent-border); cursor: pointer; &:hover { opacity: 1; } &:last-child { border-bottom: none; } } }
 
 .document-style-flow { width: 100%; max-width: var(--chat-max-width); margin: 0 auto; padding: 4rem 1.5rem 12rem; .doc-msg-row { margin-bottom: 3.5rem; } }
-.user-text-box { margin-left: auto; max-width: fit-content; background: #262626; color: #fff; border-radius: 10px; padding: 0.65rem 1rem; font-size: 14px; font-weight: 700; text-transform: uppercase; margin-bottom: 2rem; }
+
+.user-msg-container {
+    margin-left: auto; max-width: fit-content; display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 2rem;
+    .user-text-box { background: #262626; color: #fff; border-radius: 10px; padding: 0.65rem 1rem; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+    .user-msg-actions {
+        display: flex; gap: 0.8rem; margin-top: 0.5rem; opacity: 0; transition: opacity 0.2s;
+        button { background: none; border: none; color: var(--text-gray); font-size: 15px; cursor: pointer; &:hover { color: var(--text-white); } }
+    }
+    &:hover .user-msg-actions { opacity: 1; }
+}
 .ai-response-body {
     .content-wrapper {
         font-size: 17px; color: var(--text-main); line-height: 2; letter-spacing: 0.01em;
@@ -207,6 +226,84 @@ body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hi
 
 .chat-input-wrapper-fixed { position: absolute; bottom: 0; left: 0; right: 0; padding: 3rem 1.5rem; background: linear-gradient(180deg, transparent, var(--bg-main) 40%); z-index: 50; .inner-input-container { max-width: 800px; margin: 0 auto; } }
 
-.floating-sidebar-toggle { position: absolute; top: 1.55rem; left: 1.55rem; z-index: 10; color: var(--text-gray); font-size: 21px; cursor: pointer; &:hover { color: var(--text-white); } }
+.floating-sidebar-toggle { position: absolute; top: 1.55rem; left: 1.55rem; z-index: 10; color: var(--text-gray); font-size: 21px; cursor: pointer; background: none; border: none; &:hover { color: var(--text-white); } }
 .main-content { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg-main); overflow: hidden; }
 .chat-window-viewport { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
+
+/* Sidebar Overlay (for mobile) */
+.sidebar-overlay {
+    display: none;
+    &.active { display: block; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 199; }
+}
+
+/* Mobile Hamburger (hidden on desktop) */
+.mobile-hamburger-btn {
+    display: none;
+    position: absolute;
+    top: 1.1rem;
+    left: 1.1rem;
+    z-index: 10;
+    background: none;
+    border: none;
+    color: var(--text-gray);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    &:hover { color: var(--text-white); background: var(--sidebar-hover); }
+}
+
+/* Desktop-only floating toggle */
+.floating-sidebar-toggle.desktop-only { display: flex; }
+
+/* Model search tweaks */
+.pop-body-v2 {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 0.4rem;
+    .cat-section { margin-bottom: 0.5rem; .cat-title { font-size: 10px; font-weight: 800; color: var(--text-gray); padding: 0.4rem 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; } }
+    .no-models-msg { text-align: center; padding: 1.5rem; font-size: 13px; color: var(--text-gray); }
+}
+
+/* ============================
+   Mobile Responsive (≤ 768px)
+   ============================ */
+@media (max-width: 768px) {
+    /* Sidebar becomes a fixed overlay */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 240px !important;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 200;
+        &.collapsed { width: 240px !important; transform: translateX(-100%); overflow: visible; border-right: 1px solid var(--accent-border); }
+        &.mobile-open { transform: translateX(0) !important; }
+    }
+
+    /* Main content always takes full width */
+    .main-content { width: 100%; }
+    .dashboard-layout { /* reset sidebar-collapsed effect on mobile */
+        &.sidebar-collapsed .main-content { width: 100%; }
+    }
+
+    /* Show mobile hamburger, hide desktop toggle */
+    .mobile-hamburger-btn { display: flex; align-items: center; justify-content: center; }
+    .floating-sidebar-toggle.desktop-only { display: none !important; }
+
+    /* Discovery screen adjustments */
+    .discovery-screen-v2 { padding-top: 8vh; padding-left: 1rem; padding-right: 1rem; .hero-title { font-size: 2rem; } }
+    .discovery-input-card-v2 { margin: 0 0.5rem; }
+    .hero-suggestions-list { margin: 1.5rem 0.5rem 0; }
+
+    /* Chat input bottom bar */
+    .chat-input-wrapper-fixed { padding: 1.5rem 0.75rem; }
+
+    /* Chips wrapping */
+    .discovery-chips-row-v2 { flex-wrap: wrap; padding: 0 0.5rem; }
+
+    /* Model selector pops upward and fits screen */
+    .model-selector-popover-v2 { width: 290px; left: 0; }
+}
