@@ -5,9 +5,14 @@ const tvly = tavily({
     apiKey: process.env.TAVILY_API_KEY
 });
 
+/**
+ * Search the internet using Tavily.
+ * Returns up to 4 results with trimmed content for low latency.
+ */
 export const searchInternet = async (query) => {
     return await tvly.search(query, {
-        maxResults: 5,
-        searchDepth: "basic" 
+        maxResults: 4,
+        searchDepth: "basic",
+        includeAnswer: false,
     });
 };

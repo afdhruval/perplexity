@@ -49,12 +49,6 @@ const UnifiedChatInput = ({ placeholder, val, onChange, onSend, onToggleModels, 
                 </div>
             </div>
         </div>
-        <div className="input-utility-chips">
-            <button className="util-chip"><i className="ri-global-line"></i> Web & Research</button>
-            <button className="util-chip"><i className="ri-file-text-line"></i> Documents & Files</button>
-            <button className="util-chip"><i className="ri-video-line"></i> Video & Media</button>
-            <button className="util-chip"><i className="ri-tools-line"></i> Utilities</button>
-        </div>
     </div>
 );
 
@@ -78,7 +72,7 @@ const Dashboard = () => {
     const [chats, setChats] = useState([]);
     const [currentChatId, setCurrentChatId] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [currentModel, setCurrentModel] = useState({ id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', provider: 'Google' });
+    const [currentModel, setCurrentModel] = useState({ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google' });
     const [modelSearchTerm, setModelSearchTerm] = useState('');
     const [latestAiMsgId, setLatestAiMsgId] = useState(null);
     
@@ -208,15 +202,17 @@ const Dashboard = () => {
 
     const models = [
         { category: 'OpenAI', list: [
-            { id: 'gpt-4o-mini', name: 'GPT-4o mini', provider: 'OpenAI' }
+            { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'OpenAI' }
         ]},
         { category: 'Google AI', list: [
-            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', provider: 'Google' },
-            { id: 'gemini-flash-latest', name: 'Gemini Flash Latest', provider: 'Google' }
+            { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google' },
+            { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', provider: 'Google' }
+        ]},
+        { category: 'Groq', list: [
+            { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant', provider: 'Groq' }
         ]},
         { category: 'Mistral AI', list: [
-            { id: 'mistral-small', name: 'Mistral Small', provider: 'Mistral' },
-            { id: 'mistral-large', name: 'Mistral Large', provider: 'Mistral' }
+            { id: 'mistral-small', name: 'Mistral Small', provider: 'Mistral' }
         ]}
     ];
 
@@ -256,7 +252,7 @@ const Dashboard = () => {
                                     className={`m-row ${currentModel.id === m.id ? 'selected' : ''}`}
                                     onClick={(e) => { e.stopPropagation(); setCurrentModel(m); setIsModelSelectorOpen(false); setModelSearchTerm(''); }}
                                 >
-                                    <div className="m-icon-box"><i className={m.provider === 'OpenAI' ? "ri-openai-fill" : (m.provider === 'Mistral' ? "ri-sparkling-2-line" : "ri-google-fill")}></i></div>
+                                    <div className="m-icon-box"><i className={m.provider === 'OpenAI' ? "ri-openai-fill" : m.provider === 'Mistral' ? "ri-sparkling-2-line" : m.provider === 'Groq' ? "ri-cpu-line" : "ri-google-fill"}></i></div>
                                     <span className="m-name">{m.name}</span>
                                     {currentModel.id === m.id && <i className="ri-check-line select-check"></i>}
                                 </div>
@@ -382,18 +378,8 @@ const Dashboard = () => {
                     {!currentChatId && messages.length === 0 ? (
                         <div className="discovery-screen-v2">
                             <h1 className="hero-title">COROS</h1>
-                            <div className="discovery-chips-row-v2">
-                                <button className="chip"><i className="ri-compass-line"></i> For you</button>
-                                <button className="chip"><i className="ri-book-read-line"></i> Study guide</button>
-                                <button className="chip"><i className="ri-briefcase-line"></i> Business</button>
-                            </div>
                             <div className="hero-input-zone">
                                 <UnifiedChatInput placeholder="Ask anything..." val={chatInput} onChange={setChatInput} onSend={handleSendMessage} onToggleModels={() => setIsModelSelectorOpen(!isModelSelectorOpen)} isModelSelectorOpen={isModelSelectorOpen} ModelSelector={ModelSelector} isLoading={isLoading} />
-                                <div className="hero-suggestions-list">
-                                    {["Show me latest Flipkart deals", "Find online courses to master digital art", "Recommend Bollywood movies for a long flight"].map((s, i) => (
-                                        <div key={i} className="suggestion-item" onClick={() => handleSendMessage(null, s)}><span>{s}</span></div>
-                                    ))}
-                                </div>
                             </div>
                         </div>
                     ) : ( 
