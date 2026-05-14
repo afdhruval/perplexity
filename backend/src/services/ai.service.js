@@ -31,9 +31,9 @@ const getModelInstance = (modelId) => {
     } else if (modelId.includes("mistral")) {
       return new ChatMistralAI({
         model:
-          modelId === "mistral-small"
-            ? "mistral-small-latest"
-            : "mistral-large-latest",
+          modelId === "mistral-large"
+            ? "mistral-large-latest"
+            : "mistral-small-latest",
         apiKey: process.env.MISTRAL_API_KEY,
       });
     } else if (modelId.includes("gpt")) {
